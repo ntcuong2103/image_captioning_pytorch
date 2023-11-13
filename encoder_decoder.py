@@ -155,19 +155,23 @@ class DecoderRNN(pl.LightningModule):
 
 class EncoderDecoder(pl.LightningModule):
     def __init__(
-        self, embed_size, vocab_size, attention_dim, encoder_dim, decoder_dim, drop_prob=0.3
+        self, embed_size, vocab, attention_dim, encoder_dim, decoder_dim, drop_prob=0.3
     ):
         super().__init__()
         self.encoder = Encoder()
         self.decoder = DecoderRNN(
             embed_size=embed_size,
-            vocab_size=vocab_size,
+            vocab_size=len(vocab),
             attention_dim=attention_dim,
             encoder_dim=encoder_dim,
             decoder_dim=decoder_dim,
         )
+        self.vocab = vocab
 
-    def forward(self, images, captions):
+    def forward(self, images, captions, sequential=False):
         features = self.encoder(images)
-        outputs = self.decoder(features, captions)
+        if not sequential:
+            outputs = self.decoder(features, captions)
+        else:
+            outputs = self.decoder.generate_caption(features, max_len=200, vocab=self.vocab)
         return outputs

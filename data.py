@@ -30,7 +30,9 @@ class CapsCollate:
 
         targets = [item[1] for item in batch]
         targets = pad_sequence(targets, batch_first=self.batch_first, padding_value=self.pad_idx)
-        return imgs, targets
+
+        img_names = [item[2] for item in batch]
+        return imgs, targets, img_names
 
 
 class Vocabulary:
@@ -83,12 +85,15 @@ class FlickrDataset(Dataset):
     FlickrDataset
     """
 
-    def __init__(self, root_dir, captions_file, vocab_file, ids_file=None, transforms=None):
+    def __init__(self, root_dir, captions_file, vocab_file, ids_file=None, transforms=None, grouped=False):
         self.root_dir = root_dir
         self.df = pd.read_csv(captions_file)
         if ids_file != None:
             ids = [line.strip() for line in open(ids_file).readlines()]
             self.df = self.df[self.df.image.isin(ids)]
+
+        if grouped:
+            self.df = self.df.groupby("image", as_index=False).agg({"caption": '\n'.join})
 
         self.transforms = transforms
 
@@ -116,7 +121,7 @@ class FlickrDataset(Dataset):
         caption_vec += self.vocab.numericalize(caption)
         caption_vec += [self.vocab.stoi["<EOS>"]]
 
-        return img, torch.tensor(caption_vec)
+        return img, torch.tensor(caption_vec), img_name
 
 
 class ImageCaptioningData(pl.LightningDataModule):
@@ -160,6 +165,7 @@ class ImageCaptioningData(pl.LightningDataModule):
                 vocab_file=self.vocab_file,
                 ids_file=self.val_ids,
                 transforms=transforms,
+                grouped=True,
             )
         if stage == "test" or stage is None:
             self.test_dataset = FlickrDataset(
@@ -167,7 +173,8 @@ class ImageCaptioningData(pl.LightningDataModule):
                 captions_file=self.captions_file,
                 vocab_file=self.vocab_file,
                 ids_file=self.test_ids,
-                transforms=transforms,
+                transforms=None,
+                grouped=True,
             )
 
     def train_dataloader(self):
