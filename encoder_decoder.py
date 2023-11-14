@@ -122,7 +122,7 @@ class DecoderRNN(pl.LightningModule):
         for i in range(max_len):
             alpha, context = self.attention(features, h)
 
-            # store the apla score
+            # store the alpha score
             alphas.append(alpha.cpu().detach().numpy())
 
             lstm_input = torch.cat((embeds[:, 0], context), dim=1)

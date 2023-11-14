@@ -173,7 +173,7 @@ class ImageCaptioningData(pl.LightningDataModule):
                 captions_file=self.captions_file,
                 vocab_file=self.vocab_file,
                 ids_file=self.test_ids,
-                transforms=None,
+                transforms=transforms,
                 grouped=True,
             )
 
@@ -193,7 +193,7 @@ class ImageCaptioningData(pl.LightningDataModule):
     def val_dataloader(self):
         val_loader = DataLoader(
             dataset=self.val_dataset,
-            batch_size=self.batch_size,
+            batch_size=1,
             shuffle=False,
             num_workers=self.workers,
             collate_fn=CapsCollate(
@@ -204,7 +204,17 @@ class ImageCaptioningData(pl.LightningDataModule):
         return val_loader
 
     def test_dataloader(self):
-        return self.val_dataloader()
+        val_loader = DataLoader(
+            dataset=self.test_dataset,
+            batch_size=1,
+            shuffle=False,
+            num_workers=self.workers,
+            collate_fn=CapsCollate(
+                pad_idx=self.train_dataset.vocab.stoi["<PAD>"], batch_first=True
+            ),
+            persistent_workers=True,
+        )
+        return val_loader
 
 
 if __name__ == "__main__":

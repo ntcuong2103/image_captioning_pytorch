@@ -19,7 +19,7 @@ if __name__ == "__main__":
         callbacks=[
             LearningRateMonitor(logging_interval="step"),
             ModelCheckpoint(
-                filename="{epoch}-{val_loss:.4f}", save_top_k=5, monitor="val_loss", mode="min"
+                filename="{epoch}-{val_bleu_1:.4f}", save_top_k=5, monitor="val_bleu_1", mode="max"
             ),
         ],
         check_val_every_n_epoch=1,

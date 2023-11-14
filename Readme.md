@@ -12,10 +12,22 @@ pip install spacy
 python -m spacy download en_core_web_sm
 ```
 
+### Train
+
+```
+python trainer.py
+```
+### Test
+```
+python test.py
+python eval.py
+```
+
 ### Current version
 
 - Trainer tested ok!
+- Added metrics (bleu-1 in validation), saved best models with metrics
+- Added evaluation after generating captions.
 
-### Next 
-- Add metrics, save best models with metrics
+### Next
 - Add beam search
